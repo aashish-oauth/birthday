@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday! 🎉</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for dynamic interactive audio & music playback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Canvas Confetti for particle effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #311042 50%, #4c0519 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .font-display {
+            font-family: 'Fredoka One', cursive;
+        }
+        /* Custom Glowing Card Animations */
+        .glow-box {
+            box-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.25);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        /* Candle Flame Animation */
+        .flame {
+            transform-origin: center bottom;
+            animation: flicker 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-2deg); opacity: 0.9; }
+            50% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+            100% { transform: scale(0.95) rotate(-1deg); opacity: 0.85; }
+        }
+        /* Floating Balloon Animation */
+        .balloon {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .balloon:hover {
+            transform: scale(1.1);
+        }
+        /* Gift Bounce */
+        @keyframes giftBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+        .animate-bounce-gift {
+            animation: giftBounce 2s ease-in-out infinite;
+        }
+
+        /* Lock Screen Blur Overlay */
+        .lock-overlay {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="pb-16 text-slate-100 selection:bg-pink-500 selection:text-white">
+
+    <!-- 4-DIGIT PASSWORD LOCK OVERLAY -->
+    <div id="passwordGate" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 lock-overlay p-4">
+        <div class="glow-box bg-slate-900/90 p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center flex flex-col items-center border border-pink-500/30 shadow-2xl">
+            <div class="w-16 h-16 bg-pink-500/20 text-pink-400 rounded-full flex items-center justify-center text-3xl mb-4 border border-pink-500/40">
+                🔒
+            </div>
+            <h2 class="text-2xl font-bold font-display text-white mb-1">Guess The Secret Passcode! 🤫</h2>
+            <p class="text-slate-400 text-xs sm:text-sm mb-6">Hint: Enter the 4-digit secret passcode (DDMM) to unlock Sali Sahiba's B-day Hub!</p>
+            
+            <!-- Pin Display -->
+            <div class="flex justify-center gap-3 mb-6">
+                <input type="password" id="pin0" maxlength="1" readonly class="w-12 h-14 bg-slate-950 text-center text-2xl font-bold border-2 border-pink-500/50 rounded-2xl focus:outline-none text-pink-300">
+                <input type="password" id="pin1" maxlength="1" readonly class="w-12 h-14 bg-slate-950 text-center text-2xl font-bold border-2 border-pink-500/50 rounded-2xl focus:outline-none text-pink-300">
+                <input type="password" id="pin2" maxlength="1" readonly class="w-12 h-14 bg-slate-950 text-center text-2xl font-bold border-2 border-pink-500/50 rounded-2xl focus:outline-none text-pink-300">
+                <input type="password" id="pin3" maxlength="1" readonly class="w-12 h-14 bg-slate-950 text-center text-2xl font-bold border-2 border-pink-500/50 rounded-2xl focus:outline-none text-pink-300">
+            </div>
+
+            <p id="passcodeError" class="text-red-400 text-xs font-semibold mb-4 min-h-[1rem]"></p>
+
+            <!-- Keypad -->
+            <div class="grid grid-cols-3 gap-3 w-full max-w-[240px] mb-2">
+                <button onclick="pressPin('1')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">1</button>
+                <button onclick="pressPin('2')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">2</button>
+                <button onclick="pressPin('3')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">3</button>
+                <button onclick="pressPin('4')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">4</button>
+                <button onclick="pressPin('5')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">5</button>
+                <button onclick="pressPin('6')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">6</button>
+                <button onclick="pressPin('7')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">7</button>
+                <button onclick="pressPin('8')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">8</button>
+                <button onclick="pressPin('9')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">9</button>
+                <button onclick="clearPin()" class="py-3 bg-red-900/40 hover:bg-red-800/60 active:bg-red-600 rounded-xl font-bold text-sm text-red-200 border border-red-500/30 transition">Clear</button>
+                <button onclick="pressPin('0')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-pink-600 rounded-xl font-bold text-lg border border-slate-700 transition">0</button>
+                <button onclick="checkPin()" class="py-3 bg-pink-600 hover:bg-pink-500 active:bg-pink-400 rounded-xl font-bold text-sm text-white border border-pink-400 transition flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation Header -->
+    <header class="w-full py-4 px-4 sm:px-6 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 border-b border-white/10 flex justify-between items-center gap-2">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-pink-500 to-yellow-400 flex items-center justify-center text-lg sm:text-xl shadow-lg shrink-0">
+                🎂
+            </div>
+            <h1 class="text-xl sm:text-2xl font-bold font-display tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-yellow-300">
+                B-Day Hub
+            </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button onclick="toggleAudioEngine()" id="audioToggleBtn" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                <i id="audioIcon" class="fa-solid fa-volume-xmark text-pink-400"></i> <span id="audioStateText" class="hidden sm:inline">Enable Audio</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 pt-6 sm:pt-8 flex flex-col gap-8 sm:gap-10">
+
+        <!-- SECTION 1: Personalization Banner (Removed update input section) -->
+        <section class="glow-box bg-slate-900/40 rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden">
+            <div class="absolute -top-24 -left-24 w-60 h-60 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-60 h-60 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-2xl mx-auto">
+                <span class="px-4 py-1.5 rounded-full bg-pink-500/20 border border-pink-500/30 text-pink-300 text-xs sm:text-sm font-bold tracking-wider uppercase inline-block mb-4">
+                    ✨ Today's Special Celebration ✨
+                </span>
+                <h2 id="birthdayTitle" class="text-3xl sm:text-5xl font-black font-display tracking-wide mb-4 text-white drop-shadow-md">
+                    Happy Birthday dear <span id="friendNameDisplay" class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-400">Sali Sahiba</span>! 🎂✨
+                </h2>
+                <p id="wishMessageDisplay" class="text-xl sm:text-2xl font-bold text-yellow-300 leading-relaxed drop-shadow">
+                    Ek samosa 2 chai 🥟☕☕ meri sali cutie pie! 🍰💖🎉
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Interactive Birthday Song Synthesizer & Vertical Piano -->
+        <section class="glow-box bg-slate-900/50 rounded-3xl p-6 sm:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-bold font-display text-pink-300 flex items-center gap-2">
+                        <i class="fa-solid fa-music"></i> Interactive Music & Vertical Piano 🎹
+                    </h3>
+                    <p class="text-slate-400 text-xs sm:text-sm">Background music plays automatically. Tap keys vertically to jam!</p>
+                </div>
+                
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <!-- Background Song Control Button -->
+                    <button id="bgSongBtn" onclick="toggleBgSong()" class="w-full md:w-auto px-6 py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                        <i id="bgSongIcon" class="fa-solid fa-pause"></i> <span id="bgSongBtnText">Pause Music</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vertical Piano Keyboard (Mobile Optimized Stack) -->
+            <div class="w-full bg-slate-950/80 p-4 rounded-2xl border border-slate-800 flex justify-center">
+                <div class="flex flex-col w-full max-w-md gap-2" id="pianoKeysContainer">
+                    <!-- Vertical Piano Keys generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Interactive Birthday Song Synthesizer -->
+        <section class="glow-box bg-slate-900/50 rounded-3xl p-6 sm:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold font-display text-pink-300 flex items-center gap-2">
+                        <i class="fa-solid fa-music"></i> Interactive Birthday Music & Jam
+                    </h3>
+                    <p class="text-slate-400 text-sm">Background music playing automatically. Jam on the piano keys anytime!</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <!-- Background Song Control Button -->
+                    <button id="bgSongBtn" onclick="toggleBgSong()" class="px-6 py-2.5 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-2xl shadow-lg transition flex items-center gap-2">
+                        <i id="bgSongIcon" class="fa-solid fa-pause"></i> <span id="bgSongBtnText">Pause Music</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Virtual Piano Keyboard -->
+            <div class="w-full bg-slate-950/80 p-4 rounded-2xl border border-slate-800 overflow-x-auto">
+                <div class="flex justify-center min-w-[500px] gap-1.5 py-2" id="pianoKeysContainer">
+                    <!-- Piano Keys generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- GRID SECTION FOR INTERACTIVE GAMES -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- SECTION 3: Interactive Birthday Cake (Blow/Click Candles) -->
+            <section class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold font-display text-yellow-300 flex items-center gap-2">
+                            <i class="fa-solid fa-cake-candles"></i> Blow the Candles!
+                        </h3>
+                        <span id="candleCountBadge" class="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs font-semibold">5 Lit Candles</span>
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Click on the flames to blow them out, or use your microphone to blow them off!</p>
+                </div>
+
+                <!-- Interactive SVG Birthday Cake -->
+                <div class="my-6 flex justify-center items-center py-4 bg-slate-950/40 rounded-2xl border border-white/5 relative">
+                    <svg width="240" height="200" viewBox="0 0 240 200" class="select-none">
+                        <!-- Cake Base Plate -->
+                        <ellipse cx="120" cy="180" rx="100" ry="12" fill="#475569" />
+                        <ellipse cx="120" cy="177" rx="95" ry="10" fill="#64748b" />
+
+                        <!-- Cake Bottom Layer -->
+                        <path d="M 35 125 L 35 165 Q 120 185 205 165 L 205 125 Z" fill="#e11d48" />
+                        <path d="M 35 125 Q 120 145 205 125 Q 120 138 35 125 Z" fill="#f43f5e" />
+
+                        <!-- Cake Top Layer -->
+                        <path d="M 50 85 L 50 125 Q 120 145 190 125 L 190 85 Z" fill="#fb7185" />
+                        <path d="M 50 85 Q 120 100 190 85 Q 120 70 50 85 Z" fill="#fecdd3" />
+                        
+                        <!-- Frosting Drips -->
+                        <path d="M 50 85 Q 65 105 80 88 Q 95 108 110 88 Q 125 108 140 88 Q 155 108 170 88 Q 180 102 190 85 Q 120 95 50 85 Z" fill="#ffffff" opacity="0.9" />
+
+                        <!-- 5 Candles -->
+                        <!-- Candle 1 -->
+                        <g class="candle-group" onclick="extinguishCandle(0)">
+                            <rect x="65" y="55" width="8" height="30" rx="3" fill="#38bdf8" />
+                            <circle class="flame flame-0" cx="69" cy="48" r="6" fill="#f59e0b" />
+                            <circle class="flame flame-0" cx="69" cy="47" r="3" fill="#fef08a" />
+                        </g>
+                        <!-- Candle 2 -->
+                        <g class="candle-group" onclick="extinguishCandle(1)">
+                            <rect x="92" y="48" width="8" height="38" rx="3" fill="#a855f7" />
+                            <circle class="flame flame-1" cx="96" cy="41" r="6" fill="#f59e0b" />
+                            <circle class="flame flame-1" cx="96" cy="40" r="3" fill="#fef08a" />
+                        </g>
+                        <!-- Candle 3 (Middle) -->
+                        <g class="candle-group" onclick="extinguishCandle(2)">
+                            <rect x="116" y="42" width="8" height="44" rx="3" fill="#4ade80" />
+                            <circle class="flame flame-2" cx="120" cy="35" r="7" fill="#f59e0b" />
+                            <circle class="flame flame-2" cx="120" cy="34" r="3.5" fill="#fef08a" />
+                        </g>
+                        <!-- Candle 4 -->
+                        <g class="candle-group" onclick="extinguishCandle(3)">
+                            <rect x="140" y="48" width="8" height="38" rx="3" fill="#f43f5e" />
+                            <circle class="flame flame-3" cx="144" cy="41" r="6" fill="#f59e0b" />
+                            <circle class="flame flame-3" cx="144" cy="40" r="3" fill="#fef08a" />
+                        </g>
+                        <!-- Candle 5 -->
+                        <g class="candle-group" onclick="extinguishCandle(4)">
+                            <rect x="167" y="55" width="8" height="30" rx="3" fill="#facc15" />
+                            <circle class="flame flame-4" cx="171" cy="48" r="6" fill="#f59e0b" />
+                            <circle class="flame flame-4" cx="171" cy="47" r="3" fill="#fef08a" />
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="relightCandles()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl border border-slate-700 transition">
+                        <i class="fa-solid fa-fire text-amber-400 mr-1"></i> Relight Candles
+                    </button>
+                    <button id="micBtn" onclick="initMicBlow()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl border border-slate-700 transition text-pink-300">
+                        <i class="fa-solid fa-microphone mr-1"></i> Blow via Mic
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION 4: Balloon Popping Game Activity -->
+            <section class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-bold font-display text-purple-300 flex items-center gap-2">
+                            <i class="fa-solid fa-balloon"></i> Balloon Pop Blast!
+                        </h3>
+                        <div class="text-xs bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full font-bold">
+                            Popped: <span id="popScore">0</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm">Pop as many birthday balloons as you can to trigger surprises!</p>
+                </div>
+
+                <!-- Balloon Arena -->
+                <div id="balloonArena" class="h-48 my-4 bg-slate-950/40 rounded-2xl border border-white/5 relative overflow-hidden flex justify-around items-end p-2">
+                    <!-- Dynamic Balloons inserted here -->
+                </div>
+
+                <button onclick="resetBalloons()" class="w-full py-2 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 text-xs font-semibold rounded-xl border border-purple-500/30 transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Spawn More Balloons
+                </button>
+            </section>
+        </div>
+
+        <!-- NEW SECTION: Scratch Card & Quiz Activities -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Scratch & Reveal Surprise Card -->
+            <section class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col justify-between items-center text-center">
+                <div>
+                    <h3 class="text-xl font-bold font-display text-pink-300 flex items-center justify-center gap-2 mb-1">
+                        <i class="fa-solid fa-hand-sparkles"></i> Scratch & Reveal Surprise! 🎁
+                    </h3>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Scratch the silver foil below to reveal your special treat!</p>
+                </div>
+
+                <div class="relative w-64 h-36 rounded-2xl overflow-hidden border-2 border-pink-400/30 shadow-inner my-2 flex items-center justify-center bg-gradient-to-r from-purple-900 to-pink-900 select-none">
+                    <!-- Secret Hidden Content -->
+                    <div class="p-4 text-center">
+                        <p class="text-2xl mb-1">🥟☕☕</p>
+                        <p class="text-amber-300 font-bold text-sm font-display">Special Coupon Unlocked!</p>
+                        <p class="text-slate-200 text-xs mt-1">1 Free Samosa + 2 Cutting Chai Treat guaranteed!</p>
+                    </div>
+                    <!-- Scratch Canvas Layer -->
+                    <canvas id="scratchCanvas" width="256" height="144" class="absolute top-0 left-0 cursor-pointer touch-none"></canvas>
+                </div>
+
+                <button onclick="resetScratchCard()" class="mt-3 px-4 py-1.5 bg-pink-500/20 hover:bg-pink-500/40 text-pink-300 text-xs font-semibold rounded-xl border border-pink-500/30 transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Scratch Again
+                </button>
+            </section>
+
+            <!-- Birthday Sali Quiz Activity -->
+            <section class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-bold font-display text-yellow-300 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-question"></i> Sali Sahiba Quiz! 🤔
+                        </h3>
+                        <span id="quizScoreBadge" class="text-xs bg-yellow-500/20 text-yellow-300 px-3 py-1 rounded-full font-bold">Score: 0</span>
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Answer this quick fun question to earn party points!</p>
+                </div>
+
+                <div id="quizContainer" class="bg-slate-950/40 p-4 rounded-2xl border border-white/5 my-2">
+                    <p class="text-sm text-slate-200 font-semibold mb-3" id="quizQuestionText">What is the official favorite combo for Sali Cutie Pie? 🥟☕</p>
+                    <div class="grid grid-cols-1 gap-2" id="quizOptionsContainer">
+                        <button onclick="checkQuizAnswer(this, true)" class="w-full text-left p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                            A) 1 Samosa + 2 Chai 🥟☕☕
+                        </button>
+                        <button onclick="checkQuizAnswer(this, false)" class="w-full text-left p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                            B) Pizza + Cold Drink 🍕🥤
+                        </button>
+                        <button onclick="checkQuizAnswer(this, false)" class="w-full text-left p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                            C) Salad + Water 🥗💧
+                        </button>
+                    </div>
+                </div>
+
+                <p id="quizFeedback" class="text-xs font-bold text-center min-h-[1.25rem] text-pink-400"></p>
+            </section>
+        </div>
+
+        <!-- NEW SECTION: GEMINI AI POWERED ACTIVITIES -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Gemini AI Shayari & Poem Generator -->
+            <section class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold font-display text-pink-300 flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-yellow-400"></i> AI Shayari & Wishes Generator ✨
+                    </h3>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Generate custom rhyming birthday poems, Hinglish Shayaris, or funny birthday lines instantly using Gemini 3 Flash!</p>
+                </div>
+
+                <div class="space-y-3 my-2">
+                    <div class="flex gap-2">
+                        <select id="aiStyleSelect" class="bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 flex-1">
+                            <option value="Hinglish Shayari with Samosa and Chai vibe">Funny Hinglish Shayari 🥟☕</option>
+                            <option value="Heartwarming Sweet Birthday Wish">Sweet & Heartfelt Poem 💖</option>
+                            <option value="Playful Friendly Teasing Roast">Playful Birthday Roast 😜</option>
+                        </select>
+                        <button onclick="generateAiWish()" id="genWishBtn" class="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center gap-2 shadow-lg shrink-0">
+                            <i class="fa-solid fa-sparkles"></i> Generate
+                        </button>
+                    </div>
+
+                    <div id="aiWishResult" class="p-4 bg-slate-950/60 rounded-2xl border border-pink-500/30 text-xs sm:text-sm text-pink-200 font-medium min-h-[90px] flex items-center justify-center text-center italic relative leading-relaxed">
+                        Click "Generate" above to ask Gemini AI for a special custom birthday Shayari for Sali Sahiba! 🌟
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gemini AI Gift Recommender -->
+            <section class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold font-display text-cyan-300 flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-gift text-cyan-400"></i> AI Gift Idea Generator 🎁
+                    </h3>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Unsure what to gift Sali Sahiba? Let Gemini AI brainstorm creative & funny gift ideas based on her vibe!</p>
+                </div>
+
+                <div class="space-y-3 my-2">
+                    <div class="flex gap-2">
+                        <input type="text" id="giftVibeInput" placeholder="Hobbies/Vibe (e.g. Chai Lover, Foodie, Sleepyhead)" value="Chai & Samosa lover, Cutie Pie" class="bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-500 flex-1">
+                        <button onclick="generateAiGifts()" id="genGiftBtn" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 font-bold text-xs sm:text-sm rounded-xl transition flex items-center gap-2 shadow-lg shrink-0">
+                            <i class="fa-solid fa-lightbulb"></i> Find Ideas
+                        </button>
+                    </div>
+
+                    <div id="aiGiftResult" class="p-4 bg-slate-950/60 rounded-2xl border border-cyan-500/30 text-xs sm:text-sm text-slate-200 min-h-[90px] flex flex-col justify-center gap-2">
+                        <p class="text-center text-slate-400 italic">Enter her favorite traits and click "Find Ideas"!</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- SECTION 5: Mystery Gift Box & Memories Gallery -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Gift Box Unboxing (1 Column) -->
+            <div class="glow-box bg-slate-900/50 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <h3 class="text-xl font-bold font-display text-pink-300 mb-2">
+                    <i class="fa-solid fa-gift"></i> Mystery Gift 🎁
+                </h3>
+                <p class="text-xs text-slate-400 mb-6">Tap the box to reveal your birthday wish note!</p>
+                
+                <div id="giftBoxContainer" onclick="openGiftBox()" class="cursor-pointer my-4 group">
+                    <div class="w-28 h-28 bg-gradient-to-tr from-pink-600 to-rose-400 rounded-2xl shadow-2xl relative flex items-center justify-center border-2 border-pink-300 group-hover:scale-105 transition-transform animate-bounce-gift">
+                        <!-- Gift Ribbon -->
+                        <div class="absolute inset-y-0 w-6 bg-yellow-400 border-x border-yellow-500"></div>
+                        <div class="absolute inset-x-0 h-6 bg-yellow-400 border-y border-yellow-500"></div>
+                        <i class="fa-solid fa-box-open text-4xl text-yellow-200 z-10 opacity-0 group-hover:opacity-100 transition"></i>
+                    </div>
+                </div>
+
+                <!-- Unboxed Note Popup -->
+                <div id="giftNote" class="hidden mt-4 p-4 bg-yellow-500/10 border border-yellow-400/30 rounded-2xl text-xs text-yellow-200 leading-relaxed">
+                    🌟 <strong>Special Sali Coupon:</strong> Valid for 1x Free Samosa & 2 Chai treat, unlimited smiles, and zero leg-pulling all week long! 🥟☕🎉
+                </div>
+            </div>
+
+            <!-- Custom Photo Frame & Memories (2 Columns) -->
+            <div class="glow-box bg-slate-900/50 rounded-3xl p-6 md:col-span-2 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold font-display text-blue-300 flex items-center gap-2">
+                            <i class="fa-solid fa-camera-retro"></i> Friendship Memory Corner 📸
+                        </h3>
+                        <label class="cursor-pointer bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 text-xs px-3 py-1.5 rounded-xl border border-blue-400/30 transition">
+                            <i class="fa-solid fa-upload mr-1"></i> Upload Photo
+                            <input type="file" id="photoUpload" accept="image/*" class="hidden" onchange="loadFriendPhoto(event)">
+                        </label>
+                    </div>
+                    <p class="text-slate-400 text-xs sm:text-sm mb-4">Upload a special photo with Sali Sahiba to frame!</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-6 bg-slate-950/40 p-4 rounded-2xl border border-white/5">
+                    <!-- Photo Frame -->
+                    <div class="w-36 h-36 rounded-2xl border-4 border-amber-300/80 shadow-xl overflow-hidden bg-slate-800 flex items-center justify-center shrink-0 relative">
+                        <img id="memoryPhoto" src="https://placehold.co/400x400/334155/f8fafc?text=Sali+Cutie+Pie+Photo" alt="Friend Memory" class="w-full h-full object-cover">
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full">
+                        <span class="text-xs text-pink-400 font-bold uppercase tracking-wider">Memory Note</span>
+                        <textarea id="memoryCaption" rows="3" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl p-3 text-slate-200 focus:outline-none focus:border-pink-500 resize-none" placeholder="Happy Birthday dear Sali Sahiba! Ek samosa 2 chai meri sali cutie pie! 🥟☕🍰"></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- HTML5 Audio Element for custom birthday track -->
+    <audio id="bgAudio" loop preload="auto">
+        <source src="https://mobcup.fm/d/5vWTqhAZ/mp3" type="audio/mpeg">
+        <source src="https://mobcup.fm/ringtone/wish-you-happy-happy-birthday-5vWTqhAZ" type="audio/mpeg">
+    </audio>
+
+    <script>
+        /* ----------------------------------------------------
+         * PASSWORD GATE CONTROLLER (PIN: 1510)
+         * ---------------------------------------------------- */
+        let enteredPin = [];
+        const CORRECT_PIN = "1510";
+
+        function pressPin(digit) {
+            if (enteredPin.length < 4) {
+                enteredPin.push(digit);
+                updatePinDisplay();
+            }
+            if (enteredPin.length === 4) {
+                setTimeout(checkPin, 200);
+            }
+        }
+
+        function clearPin() {
+            enteredPin = [];
+            updatePinDisplay();
+            document.getElementById('passcodeError').innerText = "";
+        }
+
+        function updatePinDisplay() {
+            for (let i = 0; i < 4; i++) {
+                const el = document.getElementById(`pin${i}`);
+                if (el) {
+                    el.value = enteredPin[i] ? "●" : "";
+                }
+            }
+        }
+
+        function checkPin() {
+            const pinStr = enteredPin.join('');
+            if (pinStr === CORRECT_PIN) {
+                const gate = document.getElementById('passwordGate');
+                gate.classList.add('opacity-0', 'transition-opacity', 'duration-500', 'pointer-events-none');
+                setTimeout(() => gate.style.display = 'none', 500);
+                triggerPartyConfetti();
+                setupBgAudio();
+            } else {
+                document.getElementById('passcodeError').innerText = "❌ Incorrect Passcode! Try 1510!";
+                enteredPin = [];
+                updatePinDisplay();
+            }
+        }
+
+        /* ----------------------------------------------------
+         * AUDIO ENGINE & BACKGROUND SONG
+         * ---------------------------------------------------- */
+        let audioInitialized = false;
+        let activeSynth = null;
+
+        // Piano Key Frequencies/Notes
+        const pianoNotes = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
+
+        function initToneAudio() {
+            if (!audioInitialized) {
+                Tone.start();
+                activeSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+                activeSynth.volume.value = -6;
+                audioInitialized = true;
+
+                document.getElementById('audioIcon').className = "fa-solid fa-volume-high text-green-400";
+                document.getElementById('audioStateText').innerText = "Audio Ready";
+            }
+        }
+
+        function toggleAudioEngine() {
+            initToneAudio();
+            playPopSound();
+        }
+
+        function playSingleNote(note) {
+            initToneAudio();
+            if (activeSynth) {
+                activeSynth.triggerAttackRelease(note, "8n");
+            }
+        }
+
+        function playPopSound() {
+            if (!audioInitialized) return;
+            const popSynth = new Tone.MembraneSynth().toDestination();
+            popSynth.volume.value = -10;
+            popSynth.triggerAttackRelease("C3", "16n");
+        }
+
+        /* ----------------------------------------------------
+         * BACKGROUND SONG CONTROLS
+         * ---------------------------------------------------- */
+        const bgAudio = document.getElementById('bgAudio');
+
+        function setupBgAudio() {
+            if (!bgAudio) return;
+            bgAudio.volume = 0.3;
+
+            const promise = bgAudio.play();
+            if (promise !== undefined) {
+                promise.then(() => {
+                    updateBgAudioUI(true);
+                }).catch(() => {
+                    updateBgAudioUI(false);
+                    const enableOnGesture = () => {
+                        bgAudio.play().then(() => updateBgAudioUI(true)).catch(() => {});
+                        window.removeEventListener('click', enableOnGesture);
+                        window.removeEventListener('touchstart', enableOnGesture);
+                    };
+                    window.addEventListener('click', enableOnGesture);
+                    window.addEventListener('touchstart', enableOnGesture);
+                });
+            }
+        }
+
+        function toggleBgSong() {
+            if (!bgAudio) return;
+            if (bgAudio.paused) {
+                bgAudio.play();
+                updateBgAudioUI(true);
+            } else {
+                bgAudio.pause();
+                updateBgAudioUI(false);
+            }
+        }
+
+        function updateBgAudioUI(isPlaying) {
+            const btnText = document.getElementById('bgSongBtnText');
+            const icon = document.getElementById('bgSongIcon');
+            if (isPlaying) {
+                if (btnText) btnText.innerText = "Stop Music";
+                if (icon) icon.className = "fa-solid fa-stop";
+            } else {
+                if (btnText) btnText.innerText = "Play Music";
+                if (icon) icon.className = "fa-solid fa-play";
+            }
+        }
+
+        /* ----------------------------------------------------
+         * VERTICAL PIANO GENERATOR
+         * ---------------------------------------------------- */
+        function renderPiano() {
+            const container = document.getElementById('pianoKeysContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            pianoNotes.forEach((note, index) => {
+                const keyBtn = document.createElement('button');
+                // Vertical responsive key layout
+                keyBtn.className = "w-full h-12 bg-slate-100 hover:bg-pink-200 active:bg-pink-400 text-slate-900 rounded-xl transition font-bold text-sm flex items-center justify-between px-6 shadow-md border-l-8 border-pink-500 border-slate-300 select-none active:scale-[0.98]";
+                keyBtn.innerHTML = `
+                    <span class="text-xs text-slate-500 font-mono">Key ${index + 1}</span>
+                    <span class="font-bold text-pink-700">${note} 🎵</span>
+                `;
+                keyBtn.onclick = () => {
+                    playSingleNote(note);
+                    keyBtn.classList.add('bg-pink-300', 'border-yellow-400');
+                    setTimeout(() => keyBtn.classList.remove('bg-pink-300', 'border-yellow-400'), 150);
+                };
+                container.appendChild(keyBtn);
+            });
+        }
+
+        /* ----------------------------------------------------
+         * CANDLE BLOWING ACTIVITY
+         * ---------------------------------------------------- */
+        let unlitCandles = 0;
+
+        function extinguishCandle(index) {
+            initToneAudio();
+            const flames = document.querySelectorAll(`.flame-${index}`);
+            flames.forEach(f => f.style.display = 'none');
+            playPopSound();
+
+            unlitCandles++;
+            updateCandleBadge();
+
+            if (unlitCandles >= 5) {
+                setTimeout(() => {
+                    triggerPartyConfetti();
+                    alert("🎉 Woohoo! All candles blown out! Make a birthday wish!");
+                }, 300);
+            }
+        }
+
+        function relightCandles() {
+            unlitCandles = 0;
+            for (let i = 0; i < 5; i++) {
+                const flames = document.querySelectorAll(`.flame-${i}`);
+                flames.forEach(f => f.style.display = 'block');
+            }
+            updateCandleBadge();
+        }
+
+        function updateCandleBadge() {
+            const badge = document.getElementById('candleCountBadge');
+            const remaining = 5 - unlitCandles;
+            badge.innerText = `${remaining} Lit Candle${remaining === 1 ? '' : 's'}`;
+        }
+
+        /* Microphone Blow Detection Simulation */
+        async function initMicBlow() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                document.getElementById('micBtn').innerText = "Listening for blow...";
+
+                function detectBlow() {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        sum += dataArray[i];
+                    }
+                    let average = sum / bufferLength;
+
+                    // Threshold for blowing sound intensity
+                    if (average > 50 && unlitCandles < 5) {
+                        extinguishCandle(unlitCandles);
+                    }
+
+                    if (unlitCandles < 5) {
+                        requestAnimationFrame(detectBlow);
+                    } else {
+                        document.getElementById('micBtn').innerText = "Blow via Mic";
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                }
+                detectBlow();
+            } catch (err) {
+                alert("Microphone access permission was denied or is unsupported.");
+            }
+        }
+
+        /* ----------------------------------------------------
+         * BALLOON POP GAME ACTIVITY
+         * ---------------------------------------------------- */
+        let poppedCount = 0;
+        const balloonColors = ['#f43f5e', '#ec4899', '#a855f7', '#3b82f6', '#10b981', '#f59e0b'];
+
+        function spawnBalloons() {
+            const arena = document.getElementById('balloonArena');
+            arena.innerHTML = '';
+
+            for (let i = 0; i < 6; i++) {
+                const balloon = document.createElement('div');
+                const color = balloonColors[i % balloonColors.length];
+
+                balloon.className = "balloon relative flex flex-col items-center select-none";
+                balloon.innerHTML = `
+                    <div class="w-10 h-14 sm:w-12 sm:h-16 rounded-full shadow-lg flex items-center justify-center text-xs" style="background-color: ${color}">
+                        🎈
+                    </div>
+                    <div class="w-0.5 h-8 bg-slate-500/50"></div>
+                `;
+
+                balloon.onclick = () => {
+                    playPopSound();
+                    poppedCount++;
+                    document.getElementById('popScore').innerText = poppedCount;
+                    
+                    // Popping effect animation
+                    balloon.style.transform = "scale(1.5)";
+                    balloon.style.opacity = "0";
+                    setTimeout(() => balloon.remove(), 200);
+
+                    if (poppedCount % 5 === 0) {
+                        triggerPartyConfetti();
+                    }
+                };
+
+                arena.appendChild(balloon);
+            }
+        }
+
+        function resetBalloons() {
+            spawnBalloons();
+        }
+
+        /* ----------------------------------------------------
+         * UNBOXING GIFT & PHOTO UPLOADER
+         * ---------------------------------------------------- */
+        function openGiftBox() {
+            initToneAudio();
+            playPopSound();
+            const note = document.getElementById('giftNote');
+            note.classList.toggle('hidden');
+            triggerPartyConfetti();
+        }
+
+        function loadFriendPhoto(event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                const output = document.getElementById('memoryPhoto');
+                output.src = reader.result;
+            };
+            if (event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        /* ----------------------------------------------------
+         * SCRATCH & REVEAL ACTIVITY
+         * ---------------------------------------------------- */
+        function initScratchCard() {
+            const canvas = document.getElementById('scratchCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            // Draw silver foil overlay
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('✨ Scratch Here! ✨', canvas.width / 2, canvas.height / 2);
+
+            let isScratching = false;
+
+            function scratch(e) {
+                if (!isScratching) return;
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                triggerPartyConfetti();
+            }
+
+            canvas.onmousedown = (e) => { isScratching = true; scratch(e); };
+            canvas.onmousemove = scratch;
+            window.onmouseup = () => { isScratching = false; };
+
+            canvas.ontouchstart = (e) => { isScratching = true; scratch(e); };
+            canvas.ontouchmove = scratch;
+            window.ontouchend = () => { isScratching = false; };
+        }
+
+        function resetScratchCard() {
+            initScratchCard();
+        }
+
+        /* ----------------------------------------------------
+         * QUIZ ACTIVITY CONTROLLER
+         * ---------------------------------------------------- */
+        let quizScore = 0;
+
+        function checkQuizAnswer(btn, isCorrect) {
+            const feedback = document.getElementById('quizFeedback');
+            if (isCorrect) {
+                btn.className = "w-full text-left p-2.5 rounded-xl bg-green-600/40 text-xs text-green-200 border border-green-500 font-bold transition";
+                feedback.innerText = "🎉 Correct! 1 Samosa + 2 Chai is the unbeatable combo!";
+                quizScore += 100;
+                document.getElementById('quizScoreBadge').innerText = `Score: ${quizScore}`;
+                triggerPartyConfetti();
+                playPopSound();
+            } else {
+                btn.className = "w-full text-left p-2.5 rounded-xl bg-red-600/40 text-xs text-red-200 border border-red-500 transition";
+                feedback.innerText = "❌ Oops! Sali Sahiba demands Samosa & Chai! Try again! 🥟☕";
+            }
+        }
+
+        /* ----------------------------------------------------
+         * GEMINI LLM API INTEGRATIONS
+         * ---------------------------------------------------- */
+        async function callGeminiApi(prompt, systemInstruction = "") {
+            const apiKey = ""; // Canvas runtime automatically supplies key if left empty
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            if (systemInstruction) {
+                payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+            }
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) throw new Error(`API status ${response.status}`);
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate message right now.";
+                } catch (err) {
+                    if (attempt === 2) throw err;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        async function generateAiWish() {
+            const name = document.getElementById('friendNameInput').value.trim() || "Sali Sahiba";
+            const style = document.getElementById('aiStyleSelect').value;
+            const btn = document.getElementById('genWishBtn');
+            const resultBox = document.getElementById('aiWishResult');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating...`;
+            resultBox.innerText = "✨ Asking Gemini AI to compose a special wish...";
+
+            const systemPrompt = "You are a witty, creative, and joyful birthday wish writer. Keep outputs short (2-4 lines), vibrant, filled with fun emojis, and tailored to the requested style.";
+            const userQuery = `Write a short birthday poem/shayari for my friend named '${name}'. Style: ${style}. Mention the classic line 'Ek samosa 2 chai, meri sali cutie pie' or include samosa/chai references if relevant!`;
+
+            try {
+                const text = await callGeminiApi(userQuery, systemPrompt);
+                resultBox.innerText = `"${text}"`;
+                triggerPartyConfetti();
+            } catch (error) {
+                resultBox.innerText = "❌ Oops, couldn't fetch AI wish. Check your connection!";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-sparkles"></i> Generate`;
+            }
+        }
+
+        async function generateAiGifts() {
+            const vibe = document.getElementById('giftVibeInput').value.trim() || "Cutie pie, Chai Lover";
+            const btn = document.getElementById('genGiftBtn');
+            const resultBox = document.getElementById('aiGiftResult');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Searching...`;
+            resultBox.innerText = "💡 Gemini is thinking of fun gift ideas...";
+
+            const systemPrompt = "You are a fun gift recommendation generator. Output exactly 3 creative, witty, or funny birthday gift suggestions formatted in markdown bullet points with emojis.";
+            const userQuery = `Brainstorm 3 unique gift ideas for someone with this personality/vibe: '${vibe}'. Include one hilarious/cheap item (like cutting chai) and two creative actual gift ideas!`;
+
+            try {
+                const text = await callGeminiApi(userQuery, systemPrompt);
+                resultBox.innerHTML = text.replace(/\n/g, '<br/>').replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+            } catch (error) {
+                resultBox.innerText = "❌ Couldn't load gift ideas right now.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-lightbulb"></i> Find Ideas`;
+            }
+        }
+
+        /* ----------------------------------------------------
+         * CANVAS CONFETTI EFFECT
+         * ---------------------------------------------------- */
+        function triggerPartyConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        window.onload = function () {
+            renderPiano();
+            spawnBalloons();
+            initScratchCard();
+        };
+    </script>
+</body>
+</html>
